@@ -9,16 +9,15 @@ import application.exception.BusinessRuleException;
 import application.repository.ProductRepository;
 import application.repository.WarehouseRepository;
 import org.springframework.stereotype.Service;
-
-import java.util.concurrent.atomic.AtomicLong;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@Transactional
 public class WarehouseServiceImpl implements WarehouseService {
 
     private final WarehouseRepository warehouseRepository;
     private final ProductRepository productRepository;
     private final SellerService sellerService;
-    private final AtomicLong sequence = new AtomicLong(201);
 
     public WarehouseServiceImpl(WarehouseRepository warehouseRepository,
                                  ProductRepository productRepository,
@@ -31,10 +30,9 @@ public class WarehouseServiceImpl implements WarehouseService {
     @Override
     public SellerWarehouse createSellerWarehouse(Long sellerId, String name, String location) {
         Seller seller = sellerService.findSeller(sellerId);
-        SellerWarehouse warehouse = new SellerWarehouse(sequence.getAndIncrement(), name, location);
+        SellerWarehouse warehouse = new SellerWarehouse(name, location);
         seller.addWarehouse(warehouse);
-        warehouseRepository.save(warehouse);
-        return warehouse;
+        return warehouseRepository.save(warehouse);
     }
 
     @Override

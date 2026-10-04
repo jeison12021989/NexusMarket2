@@ -1,11 +1,7 @@
 package application.repository;
 
 import application.domain.models.Seller;
-import org.springframework.stereotype.Repository;
+import org.springframework.data.jpa.repository.JpaRepository;
 
-@Repository
-public class SellerRepository extends InMemoryRepository<Seller, Long> {
-    public SellerRepository() {
-        super(Seller::getIdentifier);
-    }
+public interface SellerRepository extends JpaRepository<Seller, Long> {
 }

@@ -4,10 +4,6 @@ import application.domain.models.Invoice;
 import application.domain.models.Order;
 import application.domain.models.Shipment;
 
-/**
- * Domain 7 - Order Management. Represents the central business process:
- * Cart -> Pending Payment -> Paid -> Shipped -> Delivered -> Completed.
- */
 public interface OrderService {
 
     Order checkout(Long buyerId);

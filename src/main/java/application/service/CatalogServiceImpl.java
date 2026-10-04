@@ -8,16 +8,16 @@ import application.domain.models.Seller;
 import application.exception.BusinessRuleException;
 import application.repository.ProductRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.util.concurrent.atomic.AtomicLong;
 
 @Service
+@Transactional
 public class CatalogServiceImpl implements CatalogService {
 
     private final ProductRepository productRepository;
     private final SellerService sellerService;
-    private final AtomicLong sequence = new AtomicLong(101);
 
     public CatalogServiceImpl(ProductRepository productRepository, SellerService sellerService) {
         this.productRepository = productRepository;
@@ -27,19 +27,17 @@ public class CatalogServiceImpl implements CatalogService {
     @Override
     public PhysicalProduct registerPhysicalProduct(Long sellerId, String name, BigDecimal price, double weight) {
         Seller seller = sellerService.findSeller(sellerId);
-        PhysicalProduct product = new PhysicalProduct(sequence.getAndIncrement(), name, price, weight);
+        PhysicalProduct product = new PhysicalProduct(name, price, weight);
         seller.registerProduct(product);
-        productRepository.save(product);
-        return product;
+        return productRepository.save(product);
     }
 
     @Override
     public DigitalProduct registerDigitalProduct(Long sellerId, String name, BigDecimal price, String fileFormat) {
         Seller seller = sellerService.findSeller(sellerId);
-        DigitalProduct product = new DigitalProduct(sequence.getAndIncrement(), name, price, fileFormat);
+        DigitalProduct product = new DigitalProduct(name, price, fileFormat);
         seller.registerProduct(product);
-        productRepository.save(product);
-        return product;
+        return productRepository.save(product);
     }
 
     @Override

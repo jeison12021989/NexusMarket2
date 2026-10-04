@@ -4,14 +4,13 @@ import application.domain.models.Seller;
 import application.exception.BusinessRuleException;
 import application.repository.SellerRepository;
 import org.springframework.stereotype.Service;
-
-import java.util.concurrent.atomic.AtomicLong;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@Transactional
 public class SellerServiceImpl implements SellerService {
 
     private final SellerRepository sellerRepository;
-    private final AtomicLong sequence = new AtomicLong(1);
 
     public SellerServiceImpl(SellerRepository sellerRepository) {
         this.sellerRepository = sellerRepository;
@@ -19,7 +18,7 @@ public class SellerServiceImpl implements SellerService {
 
     @Override
     public Seller registerSeller(String name, String email, String document) {
-        Seller seller = new Seller(sequence.getAndIncrement(), name, email, document);
+        Seller seller = new Seller(name, email, document);
         return sellerRepository.save(seller);
     }
 

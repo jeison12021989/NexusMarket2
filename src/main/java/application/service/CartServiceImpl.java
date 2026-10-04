@@ -7,10 +7,12 @@ import application.domain.models.Product;
 import application.exception.BusinessRuleException;
 import application.repository.ProductRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 
 @Service
+@Transactional
 public class CartServiceImpl implements CartService {
 
     private final BuyerService buyerService;

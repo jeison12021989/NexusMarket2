@@ -9,20 +9,28 @@ import application.domain.models.OrderDetail;
 import application.domain.models.OrderStatus;
 import application.domain.models.Shipment;
 import application.exception.BusinessRuleException;
+import application.repository.InvoiceRepository;
 import application.repository.OrderRepository;
+import application.repository.ShipmentRepository;
 import org.springframework.stereotype.Service;
-
-import java.util.concurrent.atomic.AtomicLong;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@Transactional
 public class OrderServiceImpl implements OrderService {
 
     private final OrderRepository orderRepository;
+    private final InvoiceRepository invoiceRepository;
+    private final ShipmentRepository shipmentRepository;
     private final BuyerService buyerService;
-    private final AtomicLong sequence = new AtomicLong(1001);
 
-    public OrderServiceImpl(OrderRepository orderRepository, BuyerService buyerService) {
+    public OrderServiceImpl(OrderRepository orderRepository,
+                             InvoiceRepository invoiceRepository,
+                             ShipmentRepository shipmentRepository,
+                             BuyerService buyerService) {
         this.orderRepository = orderRepository;
+        this.invoiceRepository = invoiceRepository;
+        this.shipmentRepository = shipmentRepository;
         this.buyerService = buyerService;
     }
 
@@ -34,7 +42,7 @@ public class OrderServiceImpl implements OrderService {
             throw new BusinessRuleException("Cart is empty, there is nothing to check out.");
         }
 
-        Order order = new Order(sequence.getAndIncrement(), buyer);
+        Order order = new Order(buyer);
         for (CartDetail detail : cart.getDetails()) {
             order.addDetail(new OrderDetail(detail.getProduct(), detail.getQuantity()));
         }
@@ -64,7 +72,7 @@ public class OrderServiceImpl implements OrderService {
         order.ship();
         Shipment shipment = new Shipment(order, carrier);
         shipment.ship();
-        return shipment;
+        return shipmentRepository.save(shipment);
     }
 
     @Override
@@ -93,7 +101,7 @@ public class OrderServiceImpl implements OrderService {
         if (order.getStatus() == OrderStatus.CART || order.getStatus() == OrderStatus.PENDING_PAYMENT) {
             throw new BusinessRuleException("Cannot invoice an order that has not been paid yet.");
         }
-        return new Invoice(invoiceNumber, order);
+        return invoiceRepository.save(new Invoice(invoiceNumber, order));
     }
 
     @Override

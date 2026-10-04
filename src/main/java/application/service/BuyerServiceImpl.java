@@ -4,14 +4,13 @@ import application.domain.models.Buyer;
 import application.exception.BusinessRuleException;
 import application.repository.BuyerRepository;
 import org.springframework.stereotype.Service;
-
-import java.util.concurrent.atomic.AtomicLong;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@Transactional
 public class BuyerServiceImpl implements BuyerService {
 
     private final BuyerRepository buyerRepository;
-    private final AtomicLong sequence = new AtomicLong(1);
 
     public BuyerServiceImpl(BuyerRepository buyerRepository) {
         this.buyerRepository = buyerRepository;
@@ -19,7 +18,7 @@ public class BuyerServiceImpl implements BuyerService {
 
     @Override
     public Buyer registerBuyer(String name, String email, String document) {
-        Buyer buyer = new Buyer(sequence.getAndIncrement(), name, email, document);
+        Buyer buyer = new Buyer(name, email, document);
         return buyerRepository.save(buyer);
     }
 

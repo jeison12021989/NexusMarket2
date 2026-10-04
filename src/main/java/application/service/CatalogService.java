@@ -1,14 +1,11 @@
 package application.service;
 
-import application.domain.models.PhysicalProduct;
 import application.domain.models.DigitalProduct;
+import application.domain.models.PhysicalProduct;
 import application.domain.models.ProductVariant;
 
 import java.math.BigDecimal;
 
-/**
- * Domain 5 - Catalog Management.
- */
 public interface CatalogService {
 
     PhysicalProduct registerPhysicalProduct(Long sellerId, String name, BigDecimal price, double weight);

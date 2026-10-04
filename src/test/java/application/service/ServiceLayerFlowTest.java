@@ -10,13 +10,11 @@ import application.domain.models.ReturnRequest;
 import application.domain.models.Seller;
 import application.domain.models.SellerWarehouse;
 import application.domain.models.Shipment;
-import application.repository.BuyerRepository;
-import application.repository.OrderRepository;
-import application.repository.ProductRepository;
-import application.repository.SellerRepository;
-import application.repository.WarehouseRepository;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.annotation.Rollback;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 
@@ -24,34 +22,37 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * Exercises every use case exposed by the service layer, mirroring the
- * business flow from the functional specification (Section 6.1):
- * onboarding -> catalog -> inventory -> publication -> purchase ->
- * transaction -> logistics -> closure.
+ * Integration test that exercises every use case exposed by the
+ * service layer against the REAL MySQL database (nexusmarket_db),
+ * mirroring the business flow from the functional specification
+ * (Section 6.1): onboarding -> catalog -> inventory -> publication ->
+ * purchase -> transaction -> logistics -> closure.
+ *
+ * @Transactional + @Rollback make the whole test run inside one
+ * transaction that is rolled back at the end, so running this test
+ * repeatedly never leaves leftover data in the database.
  */
+@SpringBootTest
+@Transactional
+@Rollback
 class ServiceLayerFlowTest {
 
+    @Autowired
     private SellerService sellerService;
+    @Autowired
     private BuyerService buyerService;
+    @Autowired
     private CatalogService catalogService;
+    @Autowired
     private WarehouseService warehouseService;
+    @Autowired
     private CartService cartService;
+    @Autowired
     private OrderService orderService;
+    @Autowired
     private AfterSalesService afterSalesService;
+    @Autowired
     private ReportService reportService;
-
-    @BeforeEach
-    void setUp() {
-        sellerService = new SellerServiceImpl(new SellerRepository());
-        buyerService = new BuyerServiceImpl(new BuyerRepository());
-        ProductRepository productRepository = new ProductRepository();
-        catalogService = new CatalogServiceImpl(productRepository, sellerService);
-        warehouseService = new WarehouseServiceImpl(new WarehouseRepository(), productRepository, sellerService);
-        cartService = new CartServiceImpl(buyerService, productRepository);
-        orderService = new OrderServiceImpl(new OrderRepository(), buyerService);
-        afterSalesService = new AfterSalesServiceImpl(orderService);
-        reportService = new ReportServiceImpl();
-    }
 
     @Test
     void runsFullUseCaseFlow() {
@@ -66,7 +67,7 @@ class ServiceLayerFlowTest {
         warehouseService.registerInventory(warehouse.getIdentifier(), product.getIdentifier(), 10);
 
         cartService.addProduct(buyer.getIdentifier(), product.getIdentifier(), 2);
-        assertEquals(new BigDecimal("900"), cartService.calculateTotal(buyer.getIdentifier()));
+        assertEquals(0, cartService.calculateTotal(buyer.getIdentifier()).compareTo(new BigDecimal("900")));
 
         Order order = orderService.checkout(buyer.getIdentifier());
         assertTrue(warehouseService.reserveStock(warehouse.getIdentifier(), product.getIdentifier(), 2));
@@ -77,11 +78,11 @@ class ServiceLayerFlowTest {
         orderService.completeOrder(order.getIdentifier());
 
         Invoice invoice = orderService.issueInvoice(order.getIdentifier(), "INV-001");
-        assertEquals(new BigDecimal("900"), invoice.getTotal());
+        assertEquals(0, invoice.getTotal().compareTo(new BigDecimal("900")));
 
         ReturnRequest returnRequest = afterSalesService.requestReturn(order.getIdentifier(), "Changed my mind");
-        afterSalesService.approveReturn(returnRequest);
-        Refund refund = afterSalesService.processRefund(returnRequest);
+        afterSalesService.approveReturn(returnRequest.getId());
+        Refund refund = afterSalesService.processRefund(returnRequest.getId());
         assertEquals(RefundStatus.PROCESSED, refund.getStatus());
 
         assertTrue(reportService.generateReport("General Sales Report"));

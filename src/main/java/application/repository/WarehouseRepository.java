@@ -1,11 +1,7 @@
 package application.repository;
 
 import application.domain.models.Warehouse;
-import org.springframework.stereotype.Repository;
+import org.springframework.data.jpa.repository.JpaRepository;
 
-@Repository
-public class WarehouseRepository extends InMemoryRepository<Warehouse, Long> {
-    public WarehouseRepository() {
-        super(Warehouse::getIdentifier);
-    }
+public interface WarehouseRepository extends JpaRepository<Warehouse, Long> {
 }

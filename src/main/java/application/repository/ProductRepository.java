@@ -1,11 +1,7 @@
 package application.repository;
 
 import application.domain.models.Product;
-import org.springframework.stereotype.Repository;
+import org.springframework.data.jpa.repository.JpaRepository;
 
-@Repository
-public class ProductRepository extends InMemoryRepository<Product, Long> {
-    public ProductRepository() {
-        super(Product::getIdentifier);
-    }
+public interface ProductRepository extends JpaRepository<Product, Long> {
 }
